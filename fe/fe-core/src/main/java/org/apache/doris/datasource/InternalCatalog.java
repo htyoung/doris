@@ -1871,7 +1871,7 @@ public class InternalCatalog implements CatalogIf<Database> {
         // create columns
         List<Column> baseSchema = stmt.getColumns();
         validateColumns(baseSchema, isKeysRequired);
-        checkAutoIncColummns(baseSchema, keysType);
+        checkAutoIncColumns(baseSchema, keysType);
 
         // analyze replica allocation
         ReplicaAllocation replicaAlloc = PropertyAnalyzer.analyzeReplicaAllocation(stmt.getProperties(), "");
@@ -2643,7 +2643,7 @@ public class InternalCatalog implements CatalogIf<Database> {
     /*
      * check column's auto increment property
      */
-    private void checkAutoIncColummns(List<Column> columns, KeysType type) throws DdlException {
+    private void checkAutoIncColumns(List<Column> columns, KeysType type) throws DdlException {
         boolean encounterAutoIncColumn = false;
         for (Column column : columns) {
             if (column.isAutoInc()) {
@@ -2710,6 +2710,11 @@ public class InternalCatalog implements CatalogIf<Database> {
                     partitionsDistributionInfo.put(partition.getId(), partition.getDistributionInfo());
                 }
             }
+            // if table currently has no partitions, this sql like empty command and do nothing, should return directly
+            // at the same time, it will avoid throwing IllegalStateException when `bufferSize` equals zero
+            if (origPartitions.isEmpty()) {
+                return;
+            }
             copiedTbl = olapTable.selectiveCopy(origPartitions.keySet(), IndexExtState.VISIBLE, false);
         } finally {
             olapTable.readUnlock();
@@ -2730,13 +2735,14 @@ public class InternalCatalog implements CatalogIf<Database> {
                 // which is the right behavior.
                 long oldPartitionId = entry.getValue();
                 long newPartitionId = idGeneratorBuffer.getNextId();
-                Partition newPartition = createPartitionWithIndices(db.getClusterName(), db.getId(), copiedTbl.getId(),
+                Partition newPartition = createPartitionWithIndices(db.getClusterName(), db.getId(),
+                        copiedTbl.getId(),
                         copiedTbl.getBaseIndexId(), newPartitionId, entry.getKey(), copiedTbl.getIndexIdToMeta(),
                         partitionsDistributionInfo.get(oldPartitionId),
                         copiedTbl.getPartitionInfo().getDataProperty(oldPartitionId).getStorageMedium(),
                         copiedTbl.getPartitionInfo().getReplicaAllocation(oldPartitionId), null /* version info */,
-                        copiedTbl.getCopiedBfColumns(), copiedTbl.getBfFpp(), tabletIdSet, copiedTbl.getCopiedIndexes(),
-                        copiedTbl.isInMemory(), copiedTbl.getStorageFormat(),
+                        copiedTbl.getCopiedBfColumns(), copiedTbl.getBfFpp(), tabletIdSet,
+                        copiedTbl.getCopiedIndexes(), copiedTbl.isInMemory(), copiedTbl.getStorageFormat(),
                         copiedTbl.getPartitionInfo().getTabletType(oldPartitionId), copiedTbl.getCompressionType(),
                         copiedTbl.getDataSortInfo(), copiedTbl.getEnableUniqueKeyMergeOnWrite(),
                         olapTable.getPartitionInfo().getDataProperty(oldPartitionId).getStoragePolicy(),
