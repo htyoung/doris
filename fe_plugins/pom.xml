@@ -65,6 +65,7 @@ under the License.
     <modules>
         <module>auditdemo</module>
         <module>auditloader</module>
+        <module>privilegeplugin</module>
     </modules>
     <properties>
         <log4j2.version>2.18.0</log4j2.version>
