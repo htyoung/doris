@@ -274,10 +274,11 @@ public class CatalogRecycleBin extends MasterDaemon implements Writable {
     public synchronized void replayErasePartition(long partitionId) {
         RecyclePartitionInfo partitionInfo = idToPartition.remove(partitionId);
         idToRecycleTime.remove(partitionId);
-
-        Partition partition = partitionInfo.getPartition();
-        if (!Catalog.isCheckpointThread()) {
-            Catalog.getCurrentCatalog().onErasePartition(partition);
+        if (partitionInfo != null) {
+            Partition partition = partitionInfo.getPartition();
+            if (!Catalog.isCheckpointThread()) {
+                Catalog.getCurrentCatalog().onErasePartition(partition);
+            }
         }
 
         LOG.info("replay erase partition[{}]", partitionId);
