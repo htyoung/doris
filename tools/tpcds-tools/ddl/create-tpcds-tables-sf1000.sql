@@ -29,7 +29,8 @@ CREATE TABLE IF NOT EXISTS customer_demographics (
 DUPLICATE KEY(cd_demo_sk)
 DISTRIBUTED BY HASH(cd_demo_sk) BUCKETS 9
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists reason;
 CREATE TABLE IF NOT EXISTS reason (
@@ -40,7 +41,8 @@ CREATE TABLE IF NOT EXISTS reason (
 DUPLICATE KEY(r_reason_sk)
 DISTRIBUTED BY HASH(r_reason_sk) BUCKETS 1
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists date_dim;
 CREATE TABLE IF NOT EXISTS date_dim (
@@ -76,7 +78,8 @@ CREATE TABLE IF NOT EXISTS date_dim (
 DUPLICATE KEY(d_date_sk)
 DISTRIBUTED BY HASH(d_date_sk) BUCKETS 9
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists warehouse;
 CREATE TABLE IF NOT EXISTS warehouse (
@@ -98,7 +101,8 @@ CREATE TABLE IF NOT EXISTS warehouse (
 DUPLICATE KEY(w_warehouse_sk)
 DISTRIBUTED BY HASH(w_warehouse_sk) BUCKETS 1
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists catalog_sales;
 CREATE TABLE IF NOT EXISTS catalog_sales (
@@ -215,7 +219,8 @@ PARTITION `p72` VALUES LESS THAN (MAXVALUE)
 )
 DISTRIBUTED BY HASH(cs_item_sk, cs_order_number) BUCKETS 4
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists call_center;
 CREATE TABLE IF NOT EXISTS call_center (
@@ -254,7 +259,8 @@ CREATE TABLE IF NOT EXISTS call_center (
 DUPLICATE KEY(cc_call_center_sk)
 DISTRIBUTED BY HASH(cc_call_center_sk) BUCKETS 1
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists inventory;
 CREATE TABLE IF NOT EXISTS inventory (
@@ -341,7 +347,8 @@ PARTITION `p72` VALUES LESS THAN (MAXVALUE)
 )
 DISTRIBUTED BY HASH(inv_item_sk, inv_warehouse_sk) BUCKETS 2
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists catalog_returns;
 CREATE TABLE IF NOT EXISTS catalog_returns (
@@ -451,7 +458,8 @@ PARTITION `p72` VALUES LESS THAN (MAXVALUE)
 )
 DISTRIBUTED BY HASH(cr_item_sk, cr_order_number) BUCKETS 2
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists household_demographics;
 CREATE TABLE IF NOT EXISTS household_demographics (
@@ -464,7 +472,8 @@ CREATE TABLE IF NOT EXISTS household_demographics (
 DUPLICATE KEY(hd_demo_sk)
 DISTRIBUTED BY HASH(hd_demo_sk) BUCKETS 1
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists customer_address;
 CREATE TABLE IF NOT EXISTS customer_address (
@@ -485,7 +494,8 @@ CREATE TABLE IF NOT EXISTS customer_address (
 DUPLICATE KEY(ca_address_sk)
 DISTRIBUTED BY HASH(ca_address_sk) BUCKETS 18
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists income_band;
 CREATE TABLE IF NOT EXISTS income_band (
@@ -496,7 +506,8 @@ CREATE TABLE IF NOT EXISTS income_band (
 DUPLICATE KEY(ib_income_band_sk)
 DISTRIBUTED BY HASH(ib_income_band_sk) BUCKETS 1
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists catalog_page;
 CREATE TABLE IF NOT EXISTS catalog_page (
@@ -513,7 +524,8 @@ CREATE TABLE IF NOT EXISTS catalog_page (
 DUPLICATE KEY(cp_catalog_page_sk)
 DISTRIBUTED BY HASH(cp_catalog_page_sk) BUCKETS 3
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists item;
 CREATE TABLE IF NOT EXISTS item (
@@ -543,7 +555,8 @@ CREATE TABLE IF NOT EXISTS item (
 DUPLICATE KEY(i_item_sk)
 DISTRIBUTED BY HASH(i_item_sk) BUCKETS 9
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists web_returns;
 CREATE TABLE IF NOT EXISTS web_returns (
@@ -650,7 +663,8 @@ PARTITION `p72` VALUES LESS THAN (MAXVALUE)
 )
 DISTRIBUTED BY HASH(wr_item_sk, wr_order_number) BUCKETS 2
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists web_site;
 CREATE TABLE IF NOT EXISTS web_site (
@@ -684,7 +698,8 @@ CREATE TABLE IF NOT EXISTS web_site (
 DUPLICATE KEY(web_site_sk)
 DISTRIBUTED BY HASH(web_site_sk) BUCKETS 1
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists promotion;
 CREATE TABLE IF NOT EXISTS promotion (
@@ -711,7 +726,8 @@ CREATE TABLE IF NOT EXISTS promotion (
 DUPLICATE KEY(p_promo_sk)
 DISTRIBUTED BY HASH(p_promo_sk) BUCKETS 1
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists web_sales;
 CREATE TABLE IF NOT EXISTS web_sales (
@@ -828,7 +844,8 @@ PARTITION `p72` VALUES LESS THAN (MAXVALUE)
 )
 DISTRIBUTED BY HASH(ws_item_sk, ws_order_number) BUCKETS 2
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists store;
 CREATE TABLE IF NOT EXISTS store (
@@ -865,7 +882,8 @@ CREATE TABLE IF NOT EXISTS store (
 DUPLICATE KEY(s_store_sk)
 DISTRIBUTED BY HASH(s_store_sk) BUCKETS 1
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists time_dim;
 CREATE TABLE IF NOT EXISTS time_dim (
@@ -883,7 +901,8 @@ CREATE TABLE IF NOT EXISTS time_dim (
 DUPLICATE KEY(t_time_sk)
 DISTRIBUTED BY HASH(t_time_sk) BUCKETS 9
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists web_page;
 CREATE TABLE IF NOT EXISTS web_page (
@@ -905,7 +924,8 @@ CREATE TABLE IF NOT EXISTS web_page (
 DUPLICATE KEY(wp_web_page_sk)
 DISTRIBUTED BY HASH(wp_web_page_sk) BUCKETS 1
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists store_returns;
 CREATE TABLE IF NOT EXISTS store_returns (
@@ -1008,7 +1028,8 @@ PARTITION `p72` VALUES LESS THAN (MAXVALUE)
 )
 DISTRIBUTED BY HASH(sr_item_sk, sr_ticket_number) BUCKETS 2
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists store_sales;
 CREATE TABLE IF NOT EXISTS store_sales (
@@ -1114,7 +1135,8 @@ PARTITION `p72` VALUES LESS THAN (MAXVALUE)
 )
 DISTRIBUTED BY HASH(ss_item_sk, ss_ticket_number) BUCKETS 4
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists ship_mode;
 CREATE TABLE IF NOT EXISTS ship_mode (
@@ -1128,7 +1150,8 @@ CREATE TABLE IF NOT EXISTS ship_mode (
 DUPLICATE KEY(sm_ship_mode_sk)
 DISTRIBUTED BY HASH(sm_ship_mode_sk) BUCKETS 1
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists customer;
 CREATE TABLE IF NOT EXISTS customer (
@@ -1154,7 +1177,8 @@ CREATE TABLE IF NOT EXISTS customer (
 DUPLICATE KEY(c_customer_sk)
 DISTRIBUTED BY HASH(c_customer_id) BUCKETS 18
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
 drop table if exists dbgen_version;
 CREATE TABLE IF NOT EXISTS dbgen_version
@@ -1167,5 +1191,6 @@ CREATE TABLE IF NOT EXISTS dbgen_version
 DUPLICATE KEY(dv_version)
 DISTRIBUTED BY HASH(dv_version) BUCKETS 1
 PROPERTIES (
-  "replication_num" = "1"
+  "replication_num" = "1",
+  "storage_medium" = "SSD"
 );
