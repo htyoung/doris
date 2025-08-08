@@ -473,7 +473,8 @@ supportedOtherStatement
         properties=propertyClause?                                                  #restore
     | WARM UP (CLUSTER | COMPUTE GROUP) destination=identifier WITH
         ((CLUSTER | COMPUTE GROUP) source=identifier |
-            (warmUpItem (AND warmUpItem)*)) FORCE?                                  #warmUpCluster
+            (warmUpItem (AND warmUpItem)*)) FORCE?
+            properties=propertyClause?                                              #warmUpCluster
     | BACKUP SNAPSHOT label=multipartIdentifier TO repo=identifier
         ((ON | EXCLUDE) LEFT_PAREN baseTableRef (COMMA baseTableRef)* RIGHT_PAREN)?
         properties=propertyClause?                                                  #backup
@@ -586,6 +587,7 @@ supportedAdminStatement
     | ADMIN REPAIR TABLE baseTableRef                                               #adminRepairTable
     | ADMIN CANCEL REPAIR TABLE baseTableRef                                        #adminCancelRepairTable
     | ADMIN COPY TABLET tabletId=INTEGER_VALUE properties=propertyClause?           #adminCopyTablet
+    | ADMIN SET ENCRYPTION ROOT KEY PROPERTIES LEFT_PAREN propertyItemList RIGHT_PAREN   #adminSetEncryptionRootKey
     | ADMIN SET TABLE name=multipartIdentifier
         PARTITION VERSION properties=propertyClause?                                #adminSetPartitionVersion
     ;
@@ -1274,8 +1276,13 @@ qualifyClause
 selectHint: hintStatements+=hintStatement (COMMA? hintStatements+=hintStatement)* HINT_END;
 
 hintStatement
-    : hintName=identifier (LEFT_PAREN parameters+=hintAssignment (COMMA? parameters+=hintAssignment)* RIGHT_PAREN)?
+    : hintName (LEFT_PAREN parameters+=hintAssignment (COMMA? parameters+=hintAssignment)* RIGHT_PAREN)?
     | (USE_MV | NO_USE_MV) (LEFT_PAREN tableList+=multipartIdentifier (COMMA tableList+=multipartIdentifier)* RIGHT_PAREN)?
+    ;
+
+hintName
+    : identifier
+    | LEADING
     ;
 
 hintAssignment
@@ -1484,6 +1491,10 @@ namedExpressionSeq
 
 expression
     : booleanExpression
+    ;
+
+funcExpression
+    : expression
     | lambdaExpression
     ;
 
@@ -1562,6 +1573,14 @@ primaryExpression
           RIGHT_PAREN                                                                          #charFunction
     | CONVERT LEFT_PAREN argument=expression USING charSet=identifierOrText RIGHT_PAREN        #convertCharSet
     | CONVERT LEFT_PAREN argument=expression COMMA castDataType RIGHT_PAREN                    #convertType
+    | GROUP_CONCAT LEFT_PAREN (DISTINCT|ALL)?
+        (LEFT_BRACKET identifier RIGHT_BRACKET)?
+        argument=expression
+        (ORDER BY sortItem (COMMA sortItem)*)?
+        (SEPARATOR sep=expression)? RIGHT_PAREN
+        (OVER windowSpec)?                                                                     #groupConcat
+    | TRIM LEFT_PAREN
+        ((BOTH | LEADING | TRAILING) expression? | expression) FROM expression RIGHT_PAREN     #trim
     | functionCallExpression                                                                   #functionCall
     | value=primaryExpression LEFT_BRACKET index=valueExpression RIGHT_BRACKET                 #elementAt
     | value=primaryExpression LEFT_BRACKET begin=valueExpression
@@ -1593,7 +1612,7 @@ functionCallExpression
               LEFT_PAREN (
                   (DISTINCT|ALL)?
                   (LEFT_BRACKET identifier RIGHT_BRACKET)?
-                  arguments+=expression (COMMA arguments+=expression)*
+                  arguments+=funcExpression (COMMA arguments+=funcExpression)*
                   (ORDER BY sortItem (COMMA sortItem)*)?
               )? RIGHT_PAREN
             (OVER windowSpec)?
@@ -1699,6 +1718,7 @@ dataType
     : complex=ARRAY LT dataType GT                                  #complexDataType
     | complex=MAP LT dataType COMMA dataType GT                     #complexDataType
     | complex=STRUCT LT complexColTypeList GT                       #complexDataType
+    | complex=variantTypeDefinitions                                #variantPredefinedFields
     | AGG_STATE LT functionNameIdentifier
         LEFT_PAREN dataTypes+=dataTypeWithNullable
         (COMMA dataTypes+=dataTypeWithNullable)* RIGHT_PAREN GT     #aggStateDataType
@@ -1747,6 +1767,23 @@ complexColTypeList
 
 complexColType
     : identifier COLON dataType commentSpec?
+    ;
+
+variantTypeDefinitions
+    : VARIANT LT variantSubColTypeList COMMA properties=propertyClause GT  #variant
+    | VARIANT LT variantSubColTypeList GT                                  #variant
+    | VARIANT LT properties=propertyClause GT                              #variant
+    | VARIANT                                                              #variant
+    ;
+
+variantSubColTypeList
+    : variantSubColType (COMMA variantSubColType)*
+    ;
+variantSubColType
+    : variantSubColMatchType? STRING_LITERAL COLON dataType commentSpec?
+    ;
+variantSubColMatchType
+    : (MATCH_NAME | MATCH_NAME_GLOB)
     ;
 
 commentSpec
@@ -1903,6 +1940,7 @@ nonReserved
     | DYNAMIC
     | E
     | ENABLE
+    | ENCRYPTION
     | ENCRYPTKEY
     | ENCRYPTKEYS
     | END
@@ -1933,6 +1971,7 @@ nonReserved
     | GRAPH
     | GROUPING
     | GROUPS
+    | GROUP_CONCAT
     | HASH
     | HASH_MAP
     | HDFS
@@ -1986,6 +2025,8 @@ nonReserved
     | MATCH_PHRASE_EDGE
     | MATCH_PHRASE_PREFIX
     | MATCH_REGEXP
+    | MATCH_NAME
+    | MATCH_NAME_GLOB
     | MATERIALIZED
     | MAX
     | MEMO
@@ -2069,6 +2110,7 @@ nonReserved
     | RLIKE
     | ROLLBACK
     | ROLLUP
+    | ROOT
     | ROUTINE
     | S3
     | SAMPLE
@@ -2076,6 +2118,7 @@ nonReserved
     | SCHEDULER
     | SCHEMA
     | SECOND
+    | SEPARATOR
     | SERIALIZABLE
     | SET_SESSION_VARIABLE
     | SESSION

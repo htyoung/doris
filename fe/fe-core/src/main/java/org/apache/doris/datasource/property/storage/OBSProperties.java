@@ -131,4 +131,10 @@ public class OBSProperties extends AbstractS3CompatibleProperties {
         }
         return null;
     }
+
+    @Override
+    public void initializeHadoopStorageConfig() {
+        super.initializeHadoopStorageConfig();
+        hadoopStorageConfig.set("fs.obs.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem");
+    }
 }

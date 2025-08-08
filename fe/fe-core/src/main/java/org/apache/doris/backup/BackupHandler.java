@@ -17,7 +17,6 @@
 
 package org.apache.doris.backup;
 
-import org.apache.doris.analysis.DropRepositoryStmt;
 import org.apache.doris.analysis.PartitionNames;
 import org.apache.doris.analysis.StorageBackend;
 import org.apache.doris.analysis.TableRef;
@@ -30,6 +29,7 @@ import org.apache.doris.catalog.OlapTable;
 import org.apache.doris.catalog.Partition;
 import org.apache.doris.catalog.Table;
 import org.apache.doris.catalog.TableIf.TableType;
+import org.apache.doris.cloud.backup.CloudRestoreJob;
 import org.apache.doris.cluster.ClusterNamespace;
 import org.apache.doris.common.Config;
 import org.apache.doris.common.DdlException;
@@ -321,12 +321,7 @@ public class BackupHandler extends MasterDaemon implements Writable {
         }
     }
 
-    // handle drop repository stmt
-    public void dropRepository(DropRepositoryStmt stmt) throws DdlException {
-        dropRepository(stmt.getRepoName());
-    }
-
-    // handle drop repository stmt
+    // handle drop repository command
     public void dropRepository(String repoName) throws DdlException {
         tryLock();
         try {
@@ -356,7 +351,7 @@ public class BackupHandler extends MasterDaemon implements Writable {
     public void process(BackupCommand command) throws DdlException {
         if (Config.isCloudMode()) {
             ErrorReport.reportDdlException(ErrorCode.ERR_COMMON_ERROR,
-                    "BACKUP and RESTORE are not supported by the cloud mode yet");
+                    "BACKUP are not supported by the cloud mode yet");
         }
 
         // check if repo exist
@@ -395,11 +390,11 @@ public class BackupHandler extends MasterDaemon implements Writable {
     }
 
     public void process(RestoreCommand command) throws DdlException {
-        if (Config.isCloudMode()) {
+        if (Config.isCloudMode() && !Config.enable_cloud_restore_job) {
             ErrorReport.reportDdlException(ErrorCode.ERR_COMMON_ERROR,
-                    "BACKUP and RESTORE are not supported by the cloud mode yet");
+                    "Restore is an experimental feature in cloud mode. Set config "
+                    + "`experimental_enable_cloud_restore_job` = `true` to enable.");
         }
-
         // check if repo exist
         String repoName = command.getRepoName();
         Repository repository = null;
@@ -608,6 +603,10 @@ public class BackupHandler extends MasterDaemon implements Writable {
 
     public void restore(Repository repository, Database db, RestoreCommand command) throws DdlException {
         BackupJobInfo jobInfo;
+        if ((command.isLocal() || command.isAtomicRestore() || command.reserveColocate() || command.isForceReplace())
+                && Config.isCloudMode()) {
+            ErrorReport.reportDdlException(ErrorCode.ERR_COMMON_ERROR, "not supported now.");
+        }
         if (command.isLocal()) {
             String jobInfoString = new String(command.getJobInfo());
             jobInfo = BackupJobInfo.genFromJson(jobInfoString);
@@ -663,12 +662,21 @@ public class BackupHandler extends MasterDaemon implements Writable {
                 command.isCleanPartitions(), command.isAtomicRestore(), command.isForceReplace(),
                 env, Repository.KEEP_ON_LOCAL_REPO_ID, backupMeta);
         } else {
-            restoreJob = new RestoreJob(command.getLabel(), command.getBackupTimestamp(),
-                db.getId(), db.getFullName(), jobInfo, command.allowLoad(), command.getReplicaAlloc(),
-                command.getTimeoutMs(), command.getMetaVersion(), command.reserveReplica(), command.reserveColocate(),
-                command.reserveDynamicPartitionEnable(), command.isBeingSynced(), command.isCleanTables(),
-                command.isCleanPartitions(), command.isAtomicRestore(), command.isForceReplace(),
-                env, repository.getId());
+            if (Config.isCloudMode()) {
+                restoreJob = new CloudRestoreJob(command.getLabel(), command.getBackupTimestamp(),
+                    db.getId(), db.getFullName(), jobInfo, command.allowLoad(), command.getReplicaAlloc(),
+                    command.getTimeoutMs(), command.getMetaVersion(), command.reserveReplica(),
+                    command.reserveDynamicPartitionEnable(), command.isBeingSynced(), command.isCleanTables(),
+                    command.isCleanPartitions(), command.isAtomicRestore(), command.isForceReplace(),
+                    env, repository.getId(), command.getStorageVaultName());
+            } else {
+                restoreJob = new RestoreJob(command.getLabel(), command.getBackupTimestamp(),
+                    db.getId(), db.getFullName(), jobInfo, command.allowLoad(), command.getReplicaAlloc(),
+                    command.getTimeoutMs(), command.getMetaVersion(), command.reserveReplica(),
+                    command.reserveColocate(), command.reserveDynamicPartitionEnable(), command.isBeingSynced(),
+                    command.isCleanTables(), command.isCleanPartitions(), command.isAtomicRestore(),
+                    command.isForceReplace(), env, repository.getId());
+            }
         }
 
         env.getEditLog().logRestoreJob(restoreJob);

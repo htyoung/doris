@@ -35,7 +35,6 @@ public class MinioProperties extends AbstractS3CompatibleProperties {
     @ConnectorProperty(names = {"minio.endpoint", "s3.endpoint", "AWS_ENDPOINT", "endpoint", "ENDPOINT"},
             required = false, description = "The endpoint of Minio.")
     protected String endpoint = "";
-
     @Getter
     @Setter
     protected String region = "us-east-1";

@@ -126,4 +126,11 @@ public class COSProperties extends AbstractS3CompatibleProperties {
         }
         return null;
     }
+
+    @Override
+    public void initializeHadoopStorageConfig() {
+        super.initializeHadoopStorageConfig();
+        hadoopStorageConfig.set("fs.cos.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem");
+        hadoopStorageConfig.set("fs.cosn.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem");
+    }
 }
